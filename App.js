@@ -1,7 +1,8 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useState, useRef } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
+import { Button, StyleSheet, Text, TouchableOpacity, View, Image, Alert } from 'react-native';
 import * as FileSystem from 'expo-file-system';
+import ImagePicker from 'react-native-image-crop-picker';
 
 export default function App() {
   const [facing, setFacing] = useState('back');
@@ -51,11 +52,50 @@ export default function App() {
     }
   }
 
+  async function cropImage() {
+    Alert.alert(
+      "Crop Image",
+      "Please crop the image to show only the bus stop pole",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "OK",
+          onPress: async () => {
+            try {
+              const croppedImage = await ImagePicker.openCropper({
+                path: photo,
+                width: 300,
+                height: 300,
+                cropperCircleOverlay: false,
+                freeStyleCropEnabled: true,
+                cropperToolbarTitle: 'Crop Image',
+                cropperToolbarColor: '#000000',
+                cropperStatusBarColor: '#000000',
+                cropperActiveWidgetColor: '#000000',
+                cropperToolbarWidgetColor: '#ffffff',
+              });
+              
+              setPhoto(croppedImage.path);
+            } catch (error) {
+              console.error('Error cropping image:', error);
+            }
+          }
+        }
+      ]
+    );
+  }
+
   if (photo) {
     return (
       <View style={styles.container}>
         <Image source={{ uri: photo }} style={styles.preview} />
         <View style={styles.previewButtons}>
+          <TouchableOpacity style={styles.previewButton} onPress={cropImage}>
+            <Text style={styles.text}>Crop</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.previewButton} onPress={() => setPhoto(null)}>
             <Text style={styles.text}>Retake</Text>
           </TouchableOpacity>
@@ -131,7 +171,9 @@ const styles = StyleSheet.create({
     bottom: 40,
     left: 0,
     right: 0,
-    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 20,
   },
   previewButton: {
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
