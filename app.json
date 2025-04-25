@@ -1,6 +1,14 @@
 {
   "expo": {
     "name": "StopSeeker",
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera."
+        }
+      ]
+    ],
     "slug": "StopSeeker",
     "version": "1.0.0",
     "orientation": "portrait",
