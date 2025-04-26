@@ -3,11 +3,18 @@ import { useState, useRef } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View, Image, Alert } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import ImagePicker from 'react-native-image-crop-picker';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import MapScreen from './MapScreen';
 
-export default function App() {
+const Stack = createNativeStackNavigator();
+
+function CameraScreen({ navigation }) {
   const [facing, setFacing] = useState('back');
   const [permission, requestPermission] = useCameraPermissions();
   const [photo, setPhoto] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [stopInfo, setStopInfo] = useState(null);
   const cameraRef = useRef(null);
 
   if (!permission) {
@@ -88,6 +95,49 @@ export default function App() {
     );
   }
 
+  async function uploadImage() {
+    if (!photo) return;
+    
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', {
+        uri: photo,
+        type: 'image/jpeg',
+        name: 'photo.jpg',
+      });
+
+      const response = await fetch('https://huggingface.co/spaces/42Cummer/StopSeeker/upload', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const result = await response.json();
+      setStopInfo({
+        stopId: result.stop,
+        routes: result.routes
+      });
+      
+      // Navigate to the map screen with the stop information
+      navigation.navigate('Map', {
+        stopId: result.stop,
+        routes: result.routes
+      });
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      Alert.alert('Error', 'Failed to upload image. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
   if (photo) {
     return (
       <View style={styles.container}>
@@ -96,8 +146,18 @@ export default function App() {
           <TouchableOpacity style={styles.previewButton} onPress={cropImage}>
             <Text style={styles.text}>Crop</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.previewButton} onPress={() => setPhoto(null)}>
+          <TouchableOpacity style={styles.previewButton} onPress={() => {
+            setPhoto(null);
+            setStopInfo(null);
+          }}>
             <Text style={styles.text}>Retake</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.previewButton, isUploading && styles.disabledButton]} 
+            onPress={uploadImage}
+            disabled={isUploading}
+          >
+            <Text style={styles.text}>{isUploading ? 'Uploading...' : 'Upload'}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -117,6 +177,25 @@ export default function App() {
         </View>
       </CameraView>
     </View>
+  );
+}
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen 
+          name="Camera" 
+          component={CameraScreen} 
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="Map" 
+          component={MapScreen}
+          options={{ title: 'Stop Information' }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
@@ -179,5 +258,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
     padding: 15,
     borderRadius: 5,
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
 });
