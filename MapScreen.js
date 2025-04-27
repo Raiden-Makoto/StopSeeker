@@ -27,7 +27,7 @@ export default function MapScreen({ route, navigation }) {
         longitude: parseFloat(matchingStop.stop_lon)
       });
       navigation.setOptions({
-        title: `Stop Information for ${stopId}: ${matchingStop.stop_name}`
+        title: `Stop Information for #${stopId}`
       });
     }
     setLoading(false);
@@ -83,19 +83,6 @@ export default function MapScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Stop Information</Text>
-      <ScrollView style={styles.infoContainer}>
-        <Text style={styles.text}>Stop ID: {stopId}</Text>
-        {stopInfo && (
-          <Text style={styles.text}>Stop Name: {stopInfo.name}</Text>
-        )}
-        <Text style={styles.header}>Routes</Text>
-        {sortedRoutes.map((route, index) => (
-          <View key={index} style={styles.routeItem}>
-            <Text style={styles.routeTitle}>{route}</Text>
-          </View>
-        ))}
-      </ScrollView>
       <View style={styles.mapContainer}>
         <WebView
           source={{ html: htmlContent }}
@@ -104,11 +91,14 @@ export default function MapScreen({ route, navigation }) {
           domStorageEnabled={true}
         />
       </View>
-      <View style={styles.footer}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.link}>Back to Camera</Text>
-        </TouchableOpacity>
-      </View>
+      <ScrollView style={styles.infoContainer}>
+        <Text style={styles.routesHeader}>Routes</Text>
+        {sortedRoutes.map((route, index) => (
+          <View key={index} style={styles.routeItem}>
+            <Text style={styles.routeTitle}>{route}</Text>
+          </View>
+        ))}
+      </ScrollView>
     </View>
   );
 } 
