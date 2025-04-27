@@ -18,6 +18,21 @@ export default function MapScreen({ route, navigation }) {
     return numA - numB;
   });
 
+  const isThreeDigitRoute = (route) => {
+    const routeNumber = route.split(' ')[0];
+    return routeNumber.length === 3;
+  };
+
+  const getRouteColor = (route) => {
+    const routeNumber = route.split(' ')[0];
+    if (routeNumber.startsWith('3') && routeNumber.length === 3) {
+      return '#007AFF'; // Blue for 3xx routes
+    } else if (routeNumber.startsWith('9') && routeNumber.length === 3) {
+      return '#34C759'; // Green for 9xx routes
+    }
+    return '#ff1717'; // Default red color
+  };
+
   const toggleRoute = (route) => {
     setExpandedRoutes(prev => ({
       ...prev,
@@ -107,8 +122,14 @@ export default function MapScreen({ route, navigation }) {
               style={styles.routeHeader} 
               onPress={() => toggleRoute(route)}
             >
-              <Text style={styles.routeTitle}>{route}</Text>
-              <Text style={styles.expandIcon}>
+              <Text style={[
+                styles.routeTitle,
+                { color: getRouteColor(route) }
+              ]}>{route}</Text>
+              <Text style={[
+                styles.expandIcon,
+                { color: getRouteColor(route) }
+              ]}>
                 {expandedRoutes[route] ? '▼' : '▶'}
               </Text>
             </TouchableOpacity>

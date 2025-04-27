@@ -192,13 +192,23 @@ function CameraScreen({ navigation }) {
 
     setIsUploading(true);
     try {
-      // TODO: Replace with actual API call to get routes for the stop
-      // For now, using mock data
-      const mockRoutes = ['167 Pharmacy North', '5 Downtown', '10 Express'];
+      const response = await fetch('https://huggingface.co/spaces/42Cummer/StopSeeker/seek', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ stop: manualStopId })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch stop information');
+      }
+
+      const data = await response.json();
       
       navigation.navigate('Map', {
         stopId: manualStopId,
-        routes: mockRoutes
+        routes: data.routes || []
       });
     } catch (error) {
       console.error('Error fetching stop information:', error);
