@@ -91,7 +91,6 @@ export default function MapScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Stop Information</Text>
       <View style={styles.mapContainer}>
         <WebView
           source={{ html: htmlContent }}

@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: {
@@ -96,5 +96,45 @@ export const styles = StyleSheet.create({
   },
   linkPressed: {
     textDecorationLine: 'underline',
+  },
+  manualInputContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: '#000000',
+  },
+  specialImage: {
+    width: Dimensions.get('window').width - 40,
+    height: Dimensions.get('window').width * 0.8,
+    marginBottom: 40,
+    alignSelf: 'center',
+    backgroundColor: '#333',
+    borderWidth: 2,
+    borderColor: '#ff1717',
+  },
+  manualInputLabel: {
+    fontSize: 18,
+    color: 'white',
+    marginBottom: 10,
+  },
+  manualInput: {
+    backgroundColor: 'white',
+    padding: 15,
+    borderRadius: 5,
+    fontSize: 18,
+    marginBottom: 20,
+    marginTop: 40,
+  },
+  manualInputButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 20,
+  },
+  manualInputButton: {
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    padding: 15,
+    borderRadius: 5,
+    minWidth: 120,
+    alignItems: 'center',
   },
 }); 

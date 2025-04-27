@@ -260,7 +260,13 @@ function CameraScreen({ navigation }) {
     return (
       <View style={styles.container}>
         <View style={styles.manualInputContainer}>
-          <Text style={styles.manualInputLabel}>Enter Stop Number:</Text>
+          <Image 
+            source={require('./assets/special.png')} 
+            style={styles.specialImage}
+            onError={(error) => console.error('Image loading error:', error.nativeEvent.error)}
+            onLoad={() => console.log('Image loaded successfully')}
+          />
+          
           <TextInput
             style={styles.manualInput}
             value={manualStopId}
@@ -437,5 +443,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#ff1717',
     backgroundColor: 'rgba(255, 23, 23, 0.2)',
+  },
+  specialImage: {
+    width: '100%',
+    height: 100,
+    marginBottom: 10,
   },
 });
