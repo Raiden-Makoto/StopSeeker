@@ -19,12 +19,15 @@ export default function MapScreen({ route, navigation }) {
 
   useEffect(() => {
     // Find the matching stop in the JSON data
-    const matchingStop = stopsData.find(stop => stop.id === stopId);
+    const matchingStop = stopsData[stopId];
     if (matchingStop) {
-      setStopInfo(matchingStop);
-      // Update the navigation title
+      setStopInfo({
+        name: matchingStop.stop_name,
+        latitude: parseFloat(matchingStop.stop_lat),
+        longitude: parseFloat(matchingStop.stop_lon)
+      });
       navigation.setOptions({
-        title: `Stop Information for ${stopId}: ${matchingStop.name}`
+        title: `Stop Information for ${stopId}: ${matchingStop.stop_name}`
       });
     }
     setLoading(false);

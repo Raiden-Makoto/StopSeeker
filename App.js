@@ -1,8 +1,8 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useState, useRef } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View, Image, Alert } from 'react-native';
+import { Button, StyleSheet, Text, TouchableOpacity, View, Image, Alert, TextInput, Dimensions } from 'react-native';
 import * as FileSystem from 'expo-file-system';
-import ImagePicker from 'react-native-image-crop-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import MapScreen from './MapScreen';
@@ -15,6 +15,11 @@ function CameraScreen({ navigation }) {
   const [photo, setPhoto] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [stopInfo, setStopInfo] = useState(null);
+  const [isManualMode, setIsManualMode] = useState(false);
+  const [manualStopId, setManualStopId] = useState('');
+  const [cropStart, setCropStart] = useState(null);
+  const [cropEnd, setCropEnd] = useState(null);
+  const [isCropping, setIsCropping] = useState(false);
   const cameraRef = useRef(null);
 
   if (!permission) {
@@ -34,6 +39,12 @@ function CameraScreen({ navigation }) {
 
   function toggleCameraFacing() {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
+  }
+
+  function toggleInputMode() {
+    setIsManualMode(!isManualMode);
+    setPhoto(null);
+    setStopInfo(null);
   }
 
   async function takePhoto() {
@@ -60,39 +71,74 @@ function CameraScreen({ navigation }) {
   }
 
   async function cropImage() {
+    if (!photo) return;
+    
+    setIsCropping(true);
     Alert.alert(
       "Crop Image",
-      "Please crop the image to show only the bus stop pole",
+      "Please select the area to crop by dragging on the image",
       [
         {
           text: "Cancel",
-          style: "cancel"
+          style: "cancel",
+          onPress: () => {
+            setIsCropping(false);
+            setCropStart(null);
+            setCropEnd(null);
+          }
         },
         {
-          text: "OK",
+          text: "Crop",
           onPress: async () => {
+            if (!cropStart || !cropEnd) {
+              Alert.alert('Error', 'Please select an area to crop');
+              return;
+            }
+
             try {
-              const croppedImage = await ImagePicker.openCropper({
-                path: photo,
-                width: 300,
-                height: 300,
-                cropperCircleOverlay: false,
-                freeStyleCropEnabled: true,
-                cropperToolbarTitle: 'Crop Image',
-                cropperToolbarColor: '#000000',
-                cropperStatusBarColor: '#000000',
-                cropperActiveWidgetColor: '#000000',
-                cropperToolbarWidgetColor: '#ffffff',
-              });
+              const { width, height } = await ImageManipulator.getImageSizeAsync(photo);
+              const cropWidth = Math.abs(cropEnd.x - cropStart.x);
+              const cropHeight = Math.abs(cropEnd.y - cropStart.y);
+              const originX = Math.min(cropStart.x, cropEnd.x);
+              const originY = Math.min(cropStart.y, cropEnd.y);
+
+              const manipResult = await ImageManipulator.manipulateAsync(
+                photo,
+                [{
+                  crop: {
+                    originX: (originX / Dimensions.get('window').width) * width,
+                    originY: (originY / Dimensions.get('window').height) * height,
+                    width: (cropWidth / Dimensions.get('window').width) * width,
+                    height: (cropHeight / Dimensions.get('window').height) * height
+                  }
+                }],
+                { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
+              );
               
-              setPhoto(croppedImage.path);
+              setPhoto(manipResult.uri);
             } catch (error) {
               console.error('Error cropping image:', error);
+              Alert.alert('Error', 'Failed to crop image. Please try again.');
+            } finally {
+              setIsCropping(false);
+              setCropStart(null);
+              setCropEnd(null);
             }
           }
         }
       ]
     );
+  }
+
+  function handleImagePress(event) {
+    if (!isCropping) return;
+    
+    const { locationX, locationY } = event.nativeEvent;
+    if (!cropStart) {
+      setCropStart({ x: locationX, y: locationY });
+    } else {
+      setCropEnd({ x: locationX, y: locationY });
+    }
   }
 
   async function uploadImage() {
@@ -138,17 +184,63 @@ function CameraScreen({ navigation }) {
     }
   }
 
+  async function handleManualSubmit() {
+    if (!manualStopId.trim()) {
+      Alert.alert('Error', 'Please enter a stop number');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // TODO: Replace with actual API call to get routes for the stop
+      // For now, using mock data
+      const mockRoutes = ['167 Pharmacy North', '5 Downtown', '10 Express'];
+      
+      navigation.navigate('Map', {
+        stopId: manualStopId,
+        routes: mockRoutes
+      });
+    } catch (error) {
+      console.error('Error fetching stop information:', error);
+      Alert.alert('Error', 'Failed to fetch stop information. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
   if (photo) {
     return (
       <View style={styles.container}>
-        <Image source={{ uri: photo }} style={styles.preview} />
+        <TouchableOpacity 
+          style={styles.previewContainer} 
+          onPress={handleImagePress}
+          activeOpacity={1}
+        >
+          <Image source={{ uri: photo }} style={styles.preview} />
+          {isCropping && cropStart && (
+            <View
+              style={[
+                styles.cropOverlay,
+                {
+                  left: Math.min(cropStart.x, cropEnd?.x || cropStart.x),
+                  top: Math.min(cropStart.y, cropEnd?.y || cropStart.y),
+                  width: cropEnd ? Math.abs(cropEnd.x - cropStart.x) : 0,
+                  height: cropEnd ? Math.abs(cropEnd.y - cropStart.y) : 0,
+                },
+              ]}
+            />
+          )}
+        </TouchableOpacity>
         <View style={styles.previewButtons}>
           <TouchableOpacity style={styles.previewButton} onPress={cropImage}>
-            <Text style={styles.text}>Crop</Text>
+            <Text style={styles.text}>{isCropping ? 'Select Area' : 'Crop'}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.previewButton} onPress={() => {
             setPhoto(null);
             setStopInfo(null);
+            setCropStart(null);
+            setCropEnd(null);
+            setIsCropping(false);
           }}>
             <Text style={styles.text}>Retake</Text>
           </TouchableOpacity>
@@ -164,11 +256,47 @@ function CameraScreen({ navigation }) {
     );
   }
 
+  if (isManualMode) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.manualInputContainer}>
+          <Text style={styles.manualInputLabel}>Enter Stop Number:</Text>
+          <TextInput
+            style={styles.manualInput}
+            value={manualStopId}
+            onChangeText={setManualStopId}
+            keyboardType="number-pad"
+            placeholder="Enter stop number"
+            placeholderTextColor="#666"
+          />
+          <View style={styles.manualInputButtons}>
+            <TouchableOpacity
+              style={[styles.manualInputButton, isUploading && styles.disabledButton]}
+              onPress={handleManualSubmit}
+              disabled={isUploading}
+            >
+              <Text style={styles.text}>{isUploading ? 'Loading...' : 'Submit'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.manualInputButton}
+              onPress={toggleInputMode}
+            >
+              <Text style={styles.text}>Use Camera</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <CameraView style={styles.camera} facing={facing} ref={cameraRef}>
         <TouchableOpacity style={styles.flipButton} onPress={toggleCameraFacing}>
           <Text style={styles.text}>Flip Camera</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.manualModeButton} onPress={toggleInputMode}>
+          <Text style={styles.text}>Enter Stop Number</Text>
         </TouchableOpacity>
         <View style={styles.captureButtonContainer}>
           <TouchableOpacity style={styles.captureButton} onPress={takePhoto}>
@@ -211,6 +339,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 40,
     right: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    padding: 10,
+    borderRadius: 5,
+  },
+  manualModeButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
     padding: 10,
     borderRadius: 5,
@@ -261,5 +397,45 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.5,
+  },
+  manualInputContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: '#242424',
+  },
+  manualInputLabel: {
+    fontSize: 18,
+    color: 'white',
+    marginBottom: 10,
+  },
+  manualInput: {
+    backgroundColor: 'white',
+    padding: 15,
+    borderRadius: 5,
+    fontSize: 18,
+    marginBottom: 20,
+  },
+  manualInputButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 20,
+  },
+  manualInputButton: {
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    padding: 15,
+    borderRadius: 5,
+    minWidth: 120,
+    alignItems: 'center',
+  },
+  previewContainer: {
+    flex: 1,
+    width: '100%',
+  },
+  cropOverlay: {
+    position: 'absolute',
+    borderWidth: 2,
+    borderColor: '#ff1717',
+    backgroundColor: 'rgba(255, 23, 23, 0.2)',
   },
 });
