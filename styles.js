@@ -44,7 +44,6 @@ export const styles = StyleSheet.create({
     fontFamily: 'System',
   },
   routeItem: {
-    padding: 12,
     backgroundColor: '#1a1a1a',
     borderRadius: 8,
     marginBottom: 10,
@@ -58,11 +57,30 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 3,
+    overflow: 'hidden',
+  },
+  routeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
   },
   routeTitle: {
     color: '#ff1717',
     fontSize: 16,
     fontWeight: 'bold',
+    flex: 1,
+  },
+  expandIcon: {
+    color: '#ff1717',
+    fontSize: 16,
+    marginLeft: 10,
+  },
+  routeContent: {
+    padding: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#333',
+    backgroundColor: '#000000',
   },
   footer: {
     position: 'absolute',

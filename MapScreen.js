@@ -8,6 +8,7 @@ export default function MapScreen({ route, navigation }) {
   const { stopId, routes } = route.params;
   const [stopInfo, setStopInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [expandedRoutes, setExpandedRoutes] = useState({});
 
   // Sort routes in ascending order
   const sortedRoutes = [...routes].sort((a, b) => {
@@ -16,6 +17,13 @@ export default function MapScreen({ route, navigation }) {
     const numB = parseInt(b.replace(/\D/g, ''));
     return numA - numB;
   });
+
+  const toggleRoute = (route) => {
+    setExpandedRoutes(prev => ({
+      ...prev,
+      [route]: !prev[route]
+    }));
+  };
 
   useEffect(() => {
     // Find the matching stop in the JSON data
@@ -83,6 +91,7 @@ export default function MapScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.header}>Stop Information</Text>
       <View style={styles.mapContainer}>
         <WebView
           source={{ html: htmlContent }}
@@ -95,7 +104,20 @@ export default function MapScreen({ route, navigation }) {
         <Text style={styles.routesHeader}>Routes</Text>
         {sortedRoutes.map((route, index) => (
           <View key={index} style={styles.routeItem}>
-            <Text style={styles.routeTitle}>{route}</Text>
+            <TouchableOpacity 
+              style={styles.routeHeader} 
+              onPress={() => toggleRoute(route)}
+            >
+              <Text style={styles.routeTitle}>{route}</Text>
+              <Text style={styles.expandIcon}>
+                {expandedRoutes[route] ? '▼' : '▶'}
+              </Text>
+            </TouchableOpacity>
+            {expandedRoutes[route] && (
+              <View style={styles.routeContent}>
+                {/* Dropdown content will go here */}
+              </View>
+            )}
           </View>
         ))}
       </ScrollView>
