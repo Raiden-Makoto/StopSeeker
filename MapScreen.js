@@ -23,6 +23,18 @@ export default function MapScreen({ route, navigation }) {
     return routeNumber.length === 3;
   };
 
+  const formatRouteDisplay = (route) => {
+    const parts = route.split('-');
+    if (parts.length > 1) {
+      // Keep the route number and first part together
+      const routeNumber = parts[0];
+      // Join the remaining parts with hyphens
+      const routeName = parts.slice(1).join('-');
+      return `${routeNumber} ${routeName}`;
+    }
+    return route;
+  };
+
   const getRouteColor = (route) => {
     const routeNumber = route.split('-')[0];
     if (routeNumber.startsWith('3') && routeNumber.length === 3) {
@@ -127,7 +139,7 @@ export default function MapScreen({ route, navigation }) {
               <Text style={[
                 styles.routeTitle,
                 { color: getRouteColor(route) }
-              ]}>{route}</Text>
+              ]}>{formatRouteDisplay(route)}</Text>
               <Text style={[
                 styles.expandIcon,
                 { color: getRouteColor(route) }
