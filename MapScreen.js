@@ -24,7 +24,7 @@ export default function MapScreen({ route, navigation }) {
   };
 
   const getRouteColor = (route) => {
-    const routeNumber = route.split(' ')[0];
+    const routeNumber = route.split('-')[0];
     if (routeNumber.startsWith('3') && routeNumber.length === 3) {
       return '#007AFF'; // Blue for 3xx routes
     } else if (routeNumber.startsWith('9') && routeNumber.length === 3) {

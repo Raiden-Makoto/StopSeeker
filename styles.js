@@ -66,13 +66,11 @@ export const styles = StyleSheet.create({
     padding: 12,
   },
   routeTitle: {
-    color: '#ff1717',
     fontSize: 16,
     fontWeight: 'bold',
     flex: 1,
   },
   expandIcon: {
-    color: '#ff1717',
     fontSize: 16,
     marginLeft: 10,
   },
