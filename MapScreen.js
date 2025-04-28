@@ -29,6 +29,8 @@ export default function MapScreen({ route, navigation }) {
       return '#007AFF'; // Blue for 3xx routes
     } else if (routeNumber.startsWith('9') && routeNumber.length === 3) {
       return '#34C759'; // Green for 9xx routes
+    } else if (routeNumber.startsWith('4') && routeNumber.length === 3) {
+      return '#8E8E93'; // Grey for 4xx routes
     }
     return '#ff1717'; // Default red color
   };

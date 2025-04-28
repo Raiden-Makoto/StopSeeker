@@ -153,7 +153,7 @@ function CameraScreen({ navigation }) {
         name: 'photo.jpg',
       });
 
-      const response = await fetch('https://huggingface.co/spaces/42Cummer/StopSeeker/upload', {
+      const response = await fetch('https://42Cummer-StopSeeker.hf.space/upload', {
         method: 'POST',
         body: formData,
         headers: {
@@ -192,27 +192,39 @@ function CameraScreen({ navigation }) {
 
     setIsUploading(true);
     try {
-      const response = await fetch('https://huggingface.co/spaces/42Cummer/StopSeeker/seek', {
+      console.log('Fetching stop information for:', manualStopId);
+      const response = await fetch('https://42Cummer-StopSeeker.hf.space/seek', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        body: JSON.stringify({ stop: manualStopId })
+        body: JSON.stringify({ stop: manualStopId.trim() })
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch stop information');
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error(`Server returned ${response.status}: ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('Received data:', data);
+      
+      if (!data.routes) {
+        throw new Error('No routes found in response');
+      }
       
       navigation.navigate('Map', {
         stopId: manualStopId,
-        routes: data.routes || []
+        routes: data.routes
       });
     } catch (error) {
       console.error('Error fetching stop information:', error);
-      Alert.alert('Error', 'Failed to fetch stop information. Please try again.');
+      Alert.alert(
+        'Error',
+        `Failed to fetch stop information: ${error.message}. Please try again.`
+      );
     } finally {
       setIsUploading(false);
     }
