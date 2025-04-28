@@ -1,0 +1,77 @@
+{
+    "6600-6735" : {
+        "model" : "2024 NovaBus LFSe+"
+    },
+    "3100-3369" : {
+        "model" : "2018 NovaBus LFS"
+    },
+    "8100-8219" : {
+        "model" : "2010 Orion 07.501 NG"
+    },
+    "8300-8334" : {
+        "model" : "2010 Orion 07.501 EPA10"
+    },
+    "8335-8396" : {
+        "model" : "2011-12 Orion 07.501 EPA10"
+    },
+    "8400-8504" : {
+        "model" : "2015-16 NovaBus LFS"
+    },
+    "8510-8617" : {
+        "model" : "2016 NovaBus LFS"
+    },
+    "8620-8716" : {
+        "model" : "2017 NovaBus LFS"
+    },
+    "8720-8964" : {
+        "model" : "2018 NovaBus LFS"
+    },
+    "9200-9239" : {
+        "model" : "2018 NovaBus LFS"
+    },
+    "1000-1149" : {
+        "model" : "2006 Orion 07.501 HEV"
+    },
+    "1200-1423" : {
+        "model" : "2007-09 Orion 07.501 NG HEV"
+    },
+    "1500-1689" : {
+        "model" : "2008-09 Orion 07.501 EPA10"
+    },
+    "3400-3654" : {
+        "model" : "2018-19 NovaBus LFS HEV"
+    },
+    "7000-7133" : {
+        "model" : "2023-24 NovaBus LFS HEV"
+    },
+    "7200-7333" : {
+        "model" : "2023 New Flyer XDE40"
+    },
+    "9400-9467" : {
+        "model" : "2023-24 New Flyer XDE60"
+    },
+    "9000-9026" : {
+        "model" : "2013 NovaBus LFS Artic"
+    },
+    "9027-9152" : {
+        "model" : "2014 NovaBus LFS Artic"
+    },
+    "3700-3724" : {
+        "model" : "2019-20 New Flyer Xcelsior CHARGE"
+    },
+    "3725-3749" : {
+        "model" : "2019-20 Proterra Catalyst BE40"
+    },
+    "3750-3759" : {
+        "model" : "2019-20 BYD Auto K9M"
+    },
+    "6000-6203" : {
+        "model" : "2024 New Flyer Xcelsior CHARGE"
+    },
+    "4400-4603" : {
+        "model" : "2014 Bombardier Flexity LFLRV"
+    },
+    "4604-4663" : {
+        "model" : "2023-24 Alstom Flexity LFLRV"
+    }
+}

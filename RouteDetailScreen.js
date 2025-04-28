@@ -1,9 +1,21 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
+import models from './models.json';
 
 export default function RouteDetailScreen({ route }) {
   const { routeNumber, routeName, vehicles, stopInfo } = route.params;
+
+  const getVehicleModel = (vehicleNumber) => {
+    const num = parseInt(vehicleNumber);
+    for (const [range, data] of Object.entries(models)) {
+      const [start, end] = range.split('-').map(n => parseInt(n));
+      if (num >= start && num <= end) {
+        return data.model;
+      }
+    }
+    return null;
+  };
 
   const getRouteColor = (routeNumber) => {
     if (routeNumber.startsWith('3') && routeNumber.length === 3) {
@@ -77,9 +89,16 @@ export default function RouteDetailScreen({ route }) {
                 <Text style={styles.vehicleMinutes}>
                   {vehicle.minutes}
                 </Text>
-                <Text style={styles.vehicleNumber}>
-                  {vehicle.vehicle_number}
-                </Text>
+                <View style={styles.vehicleNumberContainer}>
+                  <Text style={styles.vehicleNumber}>
+                    {vehicle.vehicle_number}
+                  </Text>
+                  {getVehicleModel(vehicle.vehicle_number) && (
+                    <Text style={styles.vehicleModel}>
+                      {getVehicleModel(vehicle.vehicle_number)}
+                    </Text>
+                  )}
+                </View>
               </View>
             </View>
           ))
@@ -133,6 +152,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '500',
   },
+  vehicleNumberContainer: {
+    alignItems: 'flex-end',
+  },
   vehicleNumber: {
     color: '#ffffff',
     fontSize: 18,
@@ -141,6 +163,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
+    marginBottom: 4,
+  },
+  vehicleModel: {
+    color: '#CCCCCC',
+    fontSize: 12,
   },
   noServiceText: {
     color: '#ffffff',
