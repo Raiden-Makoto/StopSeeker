@@ -1,6 +1,7 @@
 {
     "6600-6735" : {
-        "model" : "2024 NovaBus LFSe+"
+        "model" : "2024 NovaBus LFSe+",
+        "charging" : true
     },
     "3100-3369" : {
         "model" : "2018 NovaBus LFS"
@@ -42,13 +43,16 @@
         "model" : "2018-19 NovaBus LFS HEV"
     },
     "7000-7133" : {
-        "model" : "2023-24 NovaBus LFS HEV"
+        "model" : "2023-24 NovaBus LFS HEV",
+        "charging" : true
     },
     "7200-7333" : {
-        "model" : "2023 New Flyer XDE40"
+        "model" : "2023 New Flyer XDE40",
+        "charging" : true
     },
     "9400-9467" : {
-        "model" : "2023-24 New Flyer XDE60"
+        "model" : "2023-24 New Flyer XDE60",
+        "charging" : true
     },
     "9000-9026" : {
         "model" : "2013 NovaBus LFS Artic"
@@ -66,12 +70,15 @@
         "model" : "2019-20 BYD Auto K9M"
     },
     "6000-6203" : {
-        "model" : "2024 New Flyer Xcelsior CHARGE"
+        "model" : "2024 New Flyer Xcelsior CHARGE",
+        "charging" : true
     },
     "4400-4603" : {
-        "model" : "2014 Bombardier Flexity LFLRV"
+        "model" : "2014 Bombardier Flexity LFLRV",
+        "streetcar" : true
     },
     "4604-4663" : {
-        "model" : "2023-24 Alstom Flexity LFLRV"
+        "model" : "2023-24 Alstom Flexity LFLRV",
+        "streetcar" : true
     }
 }

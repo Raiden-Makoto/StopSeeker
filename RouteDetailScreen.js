@@ -1,7 +1,14 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { FontAwesome } from '@expo/vector-icons';
 import models from './models.json';
+
+const getArrivalTime = (minutes) => {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() + parseInt(minutes));
+  return now.toTimeString().slice(0,5); // HH:mm
+};
 
 export default function RouteDetailScreen({ route }) {
   const { routeNumber, routeName, vehicles, stopInfo } = route.params;
@@ -11,7 +18,11 @@ export default function RouteDetailScreen({ route }) {
     for (const [range, data] of Object.entries(models)) {
       const [start, end] = range.split('-').map(n => parseInt(n));
       if (num >= start && num <= end) {
-        return data.model;
+        return {
+          model: data.model,
+          charging: data.charging || false,
+          streetcar: data.streetcar || false
+        };
       }
     }
     return null;
@@ -83,25 +94,33 @@ export default function RouteDetailScreen({ route }) {
       </View>
       <ScrollView style={styles.content}>
         {vehicles?.length > 0 ? (
-          vehicles.map((vehicle, index) => (
-            <View key={index} style={styles.vehicleInfo}>
-              <View style={styles.vehicleHeader}>
-                <Text style={styles.vehicleMinutes}>
-                  {vehicle.minutes}
-                </Text>
-                <View style={styles.vehicleNumberContainer}>
-                  <Text style={styles.vehicleNumber}>
-                    {vehicle.vehicle_number}
+          vehicles.map((vehicle, index) => {
+            const min = parseInt(vehicle.minutes);
+            const arrival = getArrivalTime(min);
+            const modelInfo = getVehicleModel(vehicle.vehicle_number);
+            return (
+              <View key={index} style={styles.vehicleInfoRow}>
+                <View style={{flex: 1}}>
+                  <Text style={styles.vehicleTimeText}>
+                    in {min} minutes at {arrival}
                   </Text>
-                  {getVehicleModel(vehicle.vehicle_number) && (
-                    <Text style={styles.vehicleModel}>
-                      {getVehicleModel(vehicle.vehicle_number)}
-                    </Text>
+                  <Text style={styles.vehicleRouteText}>
+                    {routeNumber} {routeName}
+                  </Text>
+                </View>
+                <View style={styles.vehicleNumberBlock}>
+                  <Text style={styles.vehicleNumberText}>
+                    {vehicle.vehicle_number}
+                    {modelInfo?.charging && <FontAwesome name="usb" size={14} color="#fff" style={{marginLeft: 4}} />}
+                    {modelInfo?.streetcar && <FontAwesome name="train" size={14} color="#fff" style={{marginLeft: 4}} />}
+                  </Text>
+                  {modelInfo && (
+                    <Text style={styles.vehicleModelBlock}>{modelInfo.model}</Text>
                   )}
                 </View>
               </View>
-            </View>
-          ))
+            );
+          })
         ) : (
           <Text style={styles.noServiceText}>No service at this time</Text>
         )}
@@ -136,38 +155,46 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 15,
   },
-  vehicleInfo: {
-    padding: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-  },
-  vehicleHeader: {
+  vehicleInfoRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
   },
-  vehicleMinutes: {
-    color: '#ffffff',
-    fontSize: 18,
+  vehicleTimeText: {
+    color: '#fff',
+    fontSize: 16,
     fontWeight: '500',
   },
-  vehicleNumberContainer: {
-    alignItems: 'flex-end',
+  vehicleRouteText: {
+    color: '#fff',
+    fontSize: 14,
+    marginTop: 2,
   },
-  vehicleNumber: {
-    color: '#ffffff',
+  vehicleNumberBlock: {
+    alignItems: 'center',
+    minWidth: 64,
+  },
+  vehicleNumberText: {
+    backgroundColor: '#ff1717',
+    color: '#fff',
     fontSize: 18,
-    fontWeight: '500',
-    backgroundColor: '#333',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    marginBottom: 4,
+    fontWeight: 'bold',
+    borderRadius: 24,
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    textAlign: 'center',
+    overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  vehicleModel: {
+  vehicleModelBlock: {
     color: '#CCCCCC',
     fontSize: 12,
+    marginTop: 4,
+    textAlign: 'center',
   },
   noServiceText: {
     color: '#ffffff',
