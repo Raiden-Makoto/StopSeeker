@@ -5,7 +5,7 @@ import { styles } from './styles';
 import stopsData from './stops.json';
 
 export default function MapScreen({ route, navigation }) {
-  const { stopId, routes } = route.params;
+  const { stopId, routes, vehicles } = route.params;
   const [stopInfo, setStopInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [expandedRoutes, setExpandedRoutes] = useState({});
