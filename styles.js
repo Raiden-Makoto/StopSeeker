@@ -85,10 +85,36 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#333',
   },
+  vehicleHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  vehicleMinutes: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '500',
+  },
+  vehicleNumber: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '500',
+    backgroundColor: '#333',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
   vehicleText: {
     color: '#ffffff',
     fontSize: 14,
     marginBottom: 4,
+  },
+  noServiceText: {
+    color: '#ffffff',
+    fontSize: 14,
+    textAlign: 'center',
+    padding: 8,
   },
   footer: {
     position: 'absolute',

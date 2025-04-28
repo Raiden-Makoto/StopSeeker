@@ -6,6 +6,7 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import MapScreen from './MapScreen';
+import RouteDetailScreen from './RouteDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -350,6 +351,17 @@ export default function App() {
           name="Map" 
           component={MapScreen}
           options={{ title: 'Stop Information' }}
+        />
+        <Stack.Screen 
+          name="RouteDetail" 
+          component={RouteDetailScreen}
+          options={({ route }) => ({ 
+            title: `${route.params.routeNumber} ${route.params.routeName}`,
+            headerStyle: {
+              backgroundColor: '#000000',
+            },
+            headerTintColor: '#ffffff',
+          })}
         />
       </Stack.Navigator>
     </NavigationContainer>

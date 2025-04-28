@@ -8,7 +8,6 @@ export default function MapScreen({ route, navigation }) {
   const { stopId, routes, vehicles } = route.params;
   const [stopInfo, setStopInfo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [expandedRoutes, setExpandedRoutes] = useState({});
 
   // Group vehicles by route number
   const vehiclesByRoute = vehicles.reduce((acc, vehicle) => {
@@ -27,11 +26,6 @@ export default function MapScreen({ route, navigation }) {
     const numB = parseInt(b.replace(/\D/g, ''));
     return numA - numB;
   });
-
-  const isThreeDigitRoute = (route) => {
-    const routeNumber = route.split(' ')[0];
-    return routeNumber.length === 3;
-  };
 
   const formatRouteDisplay = (route) => {
     const parts = route.split('-');
@@ -57,11 +51,19 @@ export default function MapScreen({ route, navigation }) {
     return '#ff1717'; // Default red color
   };
 
-  const toggleRoute = (route) => {
-    setExpandedRoutes(prev => ({
-      ...prev,
-      [route]: !prev[route]
-    }));
+  const handleRoutePress = (route) => {
+    const routeNumber = route.split('-')[0];
+    const routeName = route.split('-').slice(1).join('-');
+    navigation.navigate('RouteDetail', {
+      routeNumber,
+      routeName,
+      vehicles: vehiclesByRoute[routeNumber] || [],
+      stopInfo: {
+        name: stopInfo.name,
+        latitude: stopInfo.latitude,
+        longitude: stopInfo.longitude
+      }
+    });
   };
 
   useEffect(() => {
@@ -141,40 +143,16 @@ export default function MapScreen({ route, navigation }) {
       <ScrollView style={styles.infoContainer}>
         <Text style={styles.routesHeader}>Routes</Text>
         {sortedRoutes.map((route, index) => (
-          <View key={index} style={styles.routeItem}>
-            <TouchableOpacity 
-              style={styles.routeHeader} 
-              onPress={() => toggleRoute(route)}
-            >
-              <Text style={[
-                styles.routeTitle,
-                { color: getRouteColor(route) }
-              ]}>{formatRouteDisplay(route)}</Text>
-              <Text style={[
-                styles.expandIcon,
-                { color: getRouteColor(route) }
-              ]}>
-                {expandedRoutes[route] ? '▼' : '▶'}
-              </Text>
-            </TouchableOpacity>
-            {expandedRoutes[route] && (
-              <View style={styles.routeContent}>
-                {vehiclesByRoute[route.split('-')[0]]?.map((vehicle, index) => (
-                  <View key={index} style={styles.vehicleInfo}>
-                    <Text style={styles.vehicleText}>
-                      Vehicle {vehicle.vehicle_number} - {vehicle.minutes}
-                    </Text>
-                    <Text style={[styles.vehicleText, { color: vehicle.delay_color }]}>
-                      {vehicle.delay_text}
-                    </Text>
-                    <Text style={styles.vehicleText}>
-                      {vehicle.location}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )}
-          </View>
+          <TouchableOpacity 
+            key={index}
+            style={styles.routeItem}
+            onPress={() => handleRoutePress(route)}
+          >
+            <Text style={[
+              styles.routeTitle,
+              { color: getRouteColor(route) }
+            ]}>{formatRouteDisplay(route)}</Text>
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </View>
