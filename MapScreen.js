@@ -10,6 +10,16 @@ export default function MapScreen({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const [expandedRoutes, setExpandedRoutes] = useState({});
 
+  // Group vehicles by route number
+  const vehiclesByRoute = vehicles.reduce((acc, vehicle) => {
+    const routeNumber = vehicle.id.split('_')[0];
+    if (!acc[routeNumber]) {
+      acc[routeNumber] = [];
+    }
+    acc[routeNumber].push(vehicle);
+    return acc;
+  }, {});
+
   // Sort routes in ascending order
   const sortedRoutes = [...routes].sort((a, b) => {
     // Extract numbers from route strings (assuming format like "167 Pharmacy North")
@@ -149,7 +159,19 @@ export default function MapScreen({ route, navigation }) {
             </TouchableOpacity>
             {expandedRoutes[route] && (
               <View style={styles.routeContent}>
-                {/* Dropdown content will go here */}
+                {vehiclesByRoute[route.split('-')[0]]?.map((vehicle, index) => (
+                  <View key={index} style={styles.vehicleInfo}>
+                    <Text style={styles.vehicleText}>
+                      Vehicle {vehicle.vehicle_number} - {vehicle.minutes}
+                    </Text>
+                    <Text style={[styles.vehicleText, { color: vehicle.delay_color }]}>
+                      {vehicle.delay_text}
+                    </Text>
+                    <Text style={styles.vehicleText}>
+                      {vehicle.location}
+                    </Text>
+                  </View>
+                ))}
               </View>
             )}
           </View>

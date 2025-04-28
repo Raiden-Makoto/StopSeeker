@@ -80,6 +80,16 @@ export const styles = StyleSheet.create({
     borderTopColor: '#333',
     backgroundColor: '#000000',
   },
+  vehicleInfo: {
+    padding: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  vehicleText: {
+    color: '#ffffff',
+    fontSize: 14,
+    marginBottom: 4,
+  },
   footer: {
     position: 'absolute',
     bottom: 0,
