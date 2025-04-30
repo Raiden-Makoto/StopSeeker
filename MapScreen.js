@@ -61,7 +61,8 @@ export default function MapScreen({ route, navigation }) {
       stopInfo: {
         name: stopInfo.name,
         latitude: stopInfo.latitude,
-        longitude: stopInfo.longitude
+        longitude: stopInfo.longitude,
+        stop: stopId
       }
     });
   };

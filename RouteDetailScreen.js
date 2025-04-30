@@ -1,17 +1,73 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, StyleSheet, RefreshControl } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { FontAwesome } from '@expo/vector-icons';
 import models from './models.json';
 
 const getArrivalTime = (minutes) => {
+  if (!minutes && minutes !== 0) return '--:--';
+  const parsedMinutes = parseInt(minutes);
+  if (isNaN(parsedMinutes)) return '--:--';
+  
   const now = new Date();
-  now.setMinutes(now.getMinutes() + parseInt(minutes));
+  now.setMinutes(now.getMinutes() + parsedMinutes);
   return now.toTimeString().slice(0,5); // HH:mm
 };
 
 export default function RouteDetailScreen({ route }) {
-  const { routeNumber, routeName, vehicles, stopInfo } = route.params;
+  const { routeNumber, routeName, stopInfo } = route.params;
+  const [vehicles, setVehicles] = useState(route.params.vehicles);
+  const [isLoading, setIsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchUpdatedVehicles = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('https://42Cummer-StopSeeker.hf.space/seek', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ stop: stopInfo.stop })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error(`Server returned ${response.status}: ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('Received data:', data);  // Debug log
+      if (data.vehicles && Array.isArray(data.vehicles)) {
+        // Filter vehicles for current route on the client side
+        const routeVehicles = data.vehicles
+          .filter(v => v && v.id && v.id.split('_')[0] === routeNumber)
+          .map(v => ({
+            ...v,
+            minutes: v.minutes,
+            vehicle_number: v.vehicle_number // Use the direct vehicle_number field
+          }));
+        console.log('Filtered vehicles:', routeVehicles);  // Debug log
+        setVehicles(routeVehicles);
+      } else {
+        console.log('No vehicles data in response or invalid format:', data);  // Debug log
+      }
+    } catch (error) {
+      console.error('Error fetching updates:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Set up the refresh interval
+    const intervalId = setInterval(fetchUpdatedVehicles, 30000); // 30 seconds
+
+    // Clean up the interval when component unmounts
+    return () => clearInterval(intervalId);
+  }, []); // Empty dependency array means this effect runs once on mount
 
   const getVehicleModel = (vehicleNumber) => {
     const num = parseInt(vehicleNumber);
@@ -77,6 +133,11 @@ export default function RouteDetailScreen({ route }) {
     </html>
   `;
 
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    fetchUpdatedVehicles().then(() => setRefreshing(false));
+  }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.mapContainer}>
@@ -91,36 +152,58 @@ export default function RouteDetailScreen({ route }) {
         <Text style={[styles.routeTitle, { color: getRouteColor(routeNumber) }]}>
           {routeNumber} {routeName}
         </Text>
+        {isLoading && <Text style={styles.refreshingText}>Refreshing...</Text>}
       </View>
-      <ScrollView style={styles.content}>
-        {vehicles?.length > 0 ? (
-          vehicles.map((vehicle, index) => {
-            const min = parseInt(vehicle.minutes);
-            const arrival = getArrivalTime(min);
-            const modelInfo = getVehicleModel(vehicle.vehicle_number);
-            return (
-              <View key={index} style={styles.vehicleInfoRow}>
-                <View style={{flex: 1}}>
-                  <Text style={styles.vehicleTimeText}>
-                    in {min} minutes at {arrival}
-                  </Text>
-                  <Text style={styles.vehicleRouteText}>
-                    {routeNumber} {routeName}
-                  </Text>
-                </View>
-                <View style={styles.vehicleNumberBlock}>
-                  <Text style={styles.vehicleNumberText}>
-                    {vehicle.vehicle_number}
-                    {modelInfo?.charging && <FontAwesome name="usb" size={14} color="#fff" style={{marginLeft: 4}} />}
-                    {modelInfo?.streetcar && <FontAwesome name="train" size={14} color="#fff" style={{marginLeft: 4}} />}
-                  </Text>
-                  {modelInfo && (
-                    <Text style={styles.vehicleModelBlock}>{modelInfo.model}</Text>
+      <ScrollView 
+        style={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#fff"
+            titleColor="#fff"
+          />
+        }
+      >
+        {vehicles && vehicles.length > 0 ? (
+          vehicles
+            .filter(vehicle => {
+              const minutes = vehicle.minutes ? parseInt(vehicle.minutes) : null;
+              // Only show if either:
+              // 1. Minutes is less than or equal to 40, or
+              // 2. Vehicle has a vehicle number
+              return !minutes || minutes <= 40 || vehicle.vehicle_number;
+            })
+            .map((vehicle, index) => {
+              const min = vehicle.minutes ? parseInt(vehicle.minutes) : null;
+              const minutesDisplay = min !== null && !isNaN(min) ? `in ${min} minutes` : 'Time unknown';
+              const arrival = getArrivalTime(min);
+              const modelInfo = getVehicleModel(vehicle.vehicle_number);
+              return (
+                <View key={index} style={styles.vehicleInfoRow}>
+                  <View style={{flex: 1}}>
+                    <Text style={styles.vehicleTimeText}>
+                      {minutesDisplay} at {arrival}
+                    </Text>
+                    <Text style={styles.vehicleRouteText}>
+                      {routeNumber} {routeName}
+                    </Text>
+                  </View>
+                  {vehicle.vehicle_number && (
+                    <View style={styles.vehicleNumberBlock}>
+                      <Text style={styles.vehicleNumberText}>
+                        {vehicle.vehicle_number}
+                        {modelInfo?.charging && <FontAwesome name="usb" size={14} color="#fff" style={{marginLeft: 4}} />}
+                        {modelInfo?.streetcar && <FontAwesome name="train" size={14} color="#fff" style={{marginLeft: 4}} />}
+                      </Text>
+                      {modelInfo && (
+                        <Text style={styles.vehicleModelBlock}>{modelInfo.model}</Text>
+                      )}
+                    </View>
                   )}
                 </View>
-              </View>
-            );
-          })
+              );
+            })
         ) : (
           <Text style={styles.noServiceText}>No service at this time</Text>
         )}
@@ -201,6 +284,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: 'center',
     padding: 20,
+  },
+  refreshingText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'right',
   },
 }); 
 
