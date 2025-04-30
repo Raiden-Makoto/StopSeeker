@@ -236,13 +236,14 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 15,
+    paddingVertical: 15,
   },
   vehicleInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingVertical: 12,
+    paddingLeft: 15,
+    paddingRight: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#222',
   },
@@ -257,8 +258,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   vehicleNumberBlock: {
-    alignItems: 'center',
+    alignItems: 'flex-end',
     minWidth: 64,
+    marginLeft: 'auto',
   },
   vehicleNumberText: {
     backgroundColor: '#ff1717',
