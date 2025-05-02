@@ -294,5 +294,3 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
 }); 
-
-//https://bustime.ttc.ca/gtfsrt/vehicles?debug
