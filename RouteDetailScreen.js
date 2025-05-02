@@ -124,10 +124,24 @@ export default function RouteDetailScreen({ route }) {
     return '#ff1717'; // Default red color
   };
 
-  const vehicleMarkers = Object.entries(vehicleLocations)
+  const busIconUrl = 'https://www.freeiconspng.com/uploads/red-bus-icon-8.png';
+
+  // Prepare JS for vehicle markers and bounds
+  const vehicleMarkersJS = Object.entries(vehicleLocations)
     .map(([id, v]) =>
       v.latitude && v.longitude
-        ? `L.marker([${v.latitude}, ${v.longitude}]).addTo(map).bindPopup('Vehicle ${id}<br>Occupancy: ${v.occupancy_status || 'Unknown'}');`
+        ? `
+          var busIcon = L.icon({
+            iconUrl: '${busIconUrl}',
+            iconSize: [40, 40],
+            iconAnchor: [20, 40],
+            popupAnchor: [0, -40]
+          });
+          var marker = L.marker([${v.latitude}, ${v.longitude}], {icon: busIcon})
+            .addTo(map)
+            .bindPopup('Vehicle ${id}');
+          bounds.push([${v.latitude}, ${v.longitude}]);
+        `
         : ''
     ).join('\n');
 
@@ -151,20 +165,24 @@ export default function RouteDetailScreen({ route }) {
         <script>
           // Initialize the map
           const map = L.map('map').setView([${stopInfo.latitude}, ${stopInfo.longitude}], 15);
-          
-          // Add the OpenStreetMap tiles
+          var bounds = [];
+          // Add the OpenStreetMap tiles with attribution
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '© OpenStreetMap contributors'
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           }).addTo(map);
-          
           // Add marker for the stop location
           L.marker([${stopInfo.latitude}, ${stopInfo.longitude}])
             .addTo(map)
             .bindPopup('${stopInfo.name}')
             .openPopup();
-          // Add vehicle markers
-          ${vehicleMarkers}
+          bounds.push([${stopInfo.latitude}, ${stopInfo.longitude}]);
+          // Add vehicle markers and their bounds
+          ${vehicleMarkersJS}
+          // Fit map to show all markers
+          if (bounds.length > 1) {
+            map.fitBounds(bounds, {padding: [30, 30]});
+          }
         </script>
       </body>
     </html>
@@ -213,7 +231,9 @@ export default function RouteDetailScreen({ route }) {
             })
             .map((vehicle, index) => {
               const min = vehicle.minutes ? parseInt(vehicle.minutes) : null;
-              const minutesDisplay = min !== null && !isNaN(min) ? `in ${min} minutes` : 'Time unknown';
+              const minutesDisplay =
+                min === 0 ? 'Now'
+                : (min !== null && !isNaN(min) ? `in ${min} minutes` : 'Time unknown');
               const arrival = getArrivalTime(min);
               const modelInfo = getVehicleModel(vehicle.vehicle_number);
               return (
