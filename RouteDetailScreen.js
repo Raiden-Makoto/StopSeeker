@@ -19,6 +19,7 @@ export default function RouteDetailScreen({ route }) {
   const [vehicles, setVehicles] = useState(route.params.vehicles);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [vehicleLocations, setVehicleLocations] = useState({});
 
   const fetchUpdatedVehicles = async () => {
     setIsLoading(true);
@@ -61,13 +62,41 @@ export default function RouteDetailScreen({ route }) {
     }
   };
 
+  const fetchVehicleLocations = async (vehicleNumbers) => {
+    try {
+      const response = await fetch('https://42cummer-stopseeker.hf.space/vehicles');
+      const data = await response.json();
+      // data is a JSON object of {id: {latitude, longitude, occupancy_status, id}, ...}
+      const locations = {};
+      Object.values(data).forEach(v => {
+        if (vehicleNumbers.includes(String(v.id))) {
+          locations[v.id] = {
+            latitude: v.latitude,
+            longitude: v.longitude,
+            occupancy_status: v.occupancy_status
+          };
+        }
+      });
+      setVehicleLocations(locations);
+    } catch (error) {
+      console.error('Error fetching vehicle locations:', error);
+    }
+  };
+
   useEffect(() => {
     // Set up the refresh interval
-    const intervalId = setInterval(fetchUpdatedVehicles, 30000); // 30 seconds
+    const intervalId = setInterval(fetchUpdatedVehicles, 45000); // 45 seconds
 
     // Clean up the interval when component unmounts
     return () => clearInterval(intervalId);
   }, []); // Empty dependency array means this effect runs once on mount
+
+  useEffect(() => {
+    if (vehicles && vehicles.length > 0) {
+      const numbers = vehicles.map(v => String(v.vehicle_number));
+      fetchVehicleLocations(numbers);
+    }
+  }, [vehicles]);
 
   const getVehicleModel = (vehicleNumber) => {
     const num = parseInt(vehicleNumber);
@@ -95,7 +124,13 @@ export default function RouteDetailScreen({ route }) {
     return '#ff1717'; // Default red color
   };
 
-  // HTML content for the Leaflet map
+  const vehicleMarkers = Object.entries(vehicleLocations)
+    .map(([id, v]) =>
+      v.latitude && v.longitude
+        ? `L.marker([${v.latitude}, ${v.longitude}]).addTo(map).bindPopup('Vehicle ${id}<br>Occupancy: ${v.occupancy_status || 'Unknown'}');`
+        : ''
+    ).join('\n');
+
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -128,6 +163,8 @@ export default function RouteDetailScreen({ route }) {
             .addTo(map)
             .bindPopup('${stopInfo.name}')
             .openPopup();
+          // Add vehicle markers
+          ${vehicleMarkers}
         </script>
       </body>
     </html>
