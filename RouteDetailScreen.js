@@ -296,14 +296,8 @@ export default function RouteDetailScreen({ route, navigation }) {
                         </Text>
                       );
                     }
-                  } else {
-                    // fallback if format is unexpected
-                    delayText = (
-                      <Text>
-                        {' '}({vehicle.delay_text})
-                      </Text>
-                    );
                   }
+                  // else: do not display anything (delayText remains null)
                 }
 
                 return (
@@ -315,7 +309,7 @@ export default function RouteDetailScreen({ route, navigation }) {
                         at {arrival} {delayText}
                       </Text>
                       <Text style={styles.vehicleRouteText}>
-                        {routeNumber} {routeName}
+                        {(vehicle.route_info ? vehicle.route_info.trim() : `${routeNumber} ${routeName}`)}
                       </Text>
                     </View>
                     {vehicle.vehicle_number && (
