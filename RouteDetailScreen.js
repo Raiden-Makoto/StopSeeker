@@ -153,7 +153,7 @@ export default function RouteDetailScreen({ route }) {
           });
           var marker = L.marker([${v.latitude}, ${v.longitude}], {icon: busIcon})
             .addTo(map)
-            .bindPopup('Vehicle ${id}');
+            .bindPopup('Bus ${id}');
           bounds.push([${v.latitude}, ${v.longitude}]);
         `
         : ''
