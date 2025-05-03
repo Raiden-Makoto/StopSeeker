@@ -64,20 +64,34 @@ export default function RouteDetailScreen({ route }) {
 
   const fetchVehicleLocations = async (vehicleNumbers) => {
     try {
-      const response = await fetch('https://42cummer-stopseeker.hf.space/vehicles');
-      const data = await response.json();
-      // data is a JSON object of {id: {latitude, longitude, occupancy_status, id}, ...}
-      const locations = {};
-      Object.values(data).forEach(v => {
-        if (vehicleNumbers.includes(String(v.id))) {
-          locations[v.id] = {
-            latitude: v.latitude,
-            longitude: v.longitude,
-            occupancy_status: v.occupancy_status
-          };
-        }
+      const response = await fetch('https://42cummer-stopseeker.hf.space/vehicles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ vehicle_numbers: vehicleNumbers })
       });
+      const data = await response.json();
+      console.log('Raw vehicle locations response:', data);
+
+      // Now data.vehicles is the array you want
+      const locations = {};
+      if (Array.isArray(data.vehicles)) {
+        data.vehicles.forEach(v => {
+          if (vehicleNumbers.includes(String(v.vehicle_id))) {
+            locations[v.vehicle_id] = {
+              latitude: v.latitude,
+              longitude: v.longitude,
+              occupancy_status: v.occupancy_status
+            };
+          }
+        });
+      } else {
+        console.error('vehicles property missing or not an array:', data);
+      }
       setVehicleLocations(locations);
+      console.log('Vehicle locations:', locations);
     } catch (error) {
       console.error('Error fetching vehicle locations:', error);
     }
@@ -133,9 +147,9 @@ export default function RouteDetailScreen({ route }) {
         ? `
           var busIcon = L.icon({
             iconUrl: '${busIconUrl}',
-            iconSize: [40, 40],
-            iconAnchor: [20, 40],
-            popupAnchor: [0, -40]
+            iconSize: [28, 28],
+            iconAnchor: [14, 28],
+            popupAnchor: [0, -28]
           });
           var marker = L.marker([${v.latitude}, ${v.longitude}], {icon: busIcon})
             .addTo(map)

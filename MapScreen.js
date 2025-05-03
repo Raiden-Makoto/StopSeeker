@@ -146,12 +146,31 @@ export default function MapScreen({ route, navigation }) {
         {sortedRoutes.map((route, index) => (
           <TouchableOpacity 
             key={index}
-            style={styles.routeItem}
+            style={[
+              styles.routeItem,
+              {
+                height: 48, // Fixed height for perfect vertical centering
+                justifyContent: 'center',
+                alignItems: 'center',
+                paddingTop: 0,
+                paddingBottom: 0,
+                marginTop: 0,
+                marginBottom: 6,
+              }
+            ]}
             onPress={() => handleRoutePress(route)}
           >
             <Text style={[
               styles.routeTitle,
-              { color: getRouteColor(route) }
+              { 
+                color: getRouteColor(route), 
+                textAlign: 'center',
+                lineHeight: 24, // Should be equal to or slightly larger than fontSize
+                marginTop: 0,
+                marginBottom: 0,
+                paddingTop: 10,
+                paddingBottom: 0,
+              }
             ]}>{formatRouteDisplay(route)}</Text>
           </TouchableOpacity>
         ))}
