@@ -14,7 +14,7 @@ const getArrivalTime = (minutes) => {
   return now.toTimeString().slice(0,5); // HH:mm
 };
 
-export default function RouteDetailScreen({ route }) {
+export default function RouteDetailScreen({ route, navigation }) {
   const { routeNumber, routeName, stopInfo } = route.params;
   const [vehicles, setVehicles] = useState(route.params.vehicles);
   const [isLoading, setIsLoading] = useState(false);
@@ -207,6 +207,15 @@ export default function RouteDetailScreen({ route }) {
     fetchUpdatedVehicles().then(() => setRefreshing(false));
   }, []);
 
+  // Set the page title to include the stop id
+  React.useEffect(() => {
+    if (navigation && stopInfo && stopInfo.stop) {
+      navigation.setOptions({
+        title: `${routeNumber} ${routeName} at stop #${stopInfo.stop}`
+      });
+    }
+  }, [navigation, stopInfo, routeNumber, routeName]);
+
   return (
     <View style={styles.container}>
       <View style={styles.mapContainer}>
@@ -246,24 +255,64 @@ export default function RouteDetailScreen({ route }) {
             });
             return uniqueVehicles
               .filter(vehicle => {
-                const minutes = vehicle.minutes ? parseInt(vehicle.minutes) : null;
-                // Only show if either:
-                // 1. Minutes is less than or equal to 40, or
-                // 2. Vehicle has a vehicle number
-                return !minutes || minutes <= 40 || vehicle.vehicle_number;
+                // Only show if vehicle has a vehicle number
+                return vehicle.vehicle_number;
               })
               .map((vehicle, index) => {
                 const min = vehicle.minutes ? parseInt(vehicle.minutes) : null;
-                const minutesDisplay =
-                  min === 0 ? 'Now'
-                  : (min !== null && !isNaN(min) ? `in ${min} minutes` : 'Time unknown');
+                let minutesDisplay;
+                if (min === 0) {
+                  minutesDisplay = 'Now';
+                } else if (min !== null && !isNaN(min)) {
+                  minutesDisplay = `In ${min} minutes`;
+                } else {
+                  minutesDisplay = 'Time unknown';
+                }
                 const arrival = getArrivalTime(min);
                 const modelInfo = getVehicleModel(vehicle.vehicle_number);
+
+                // Delay text with +/- and color
+                let delayText = null;
+                if (vehicle.delay_text && typeof vehicle.delay_text === 'string') {
+                  let match = vehicle.delay_text.match(/^(\d+:\d{2})\s+(ahead|behind)$/);
+                  if (match) {
+                    const [ , time, status ] = match;
+                    if (time === '0:00') {
+                      delayText = (
+                        <Text style={{ color: '#fff' }}>
+                          {' '}(on time)
+                        </Text>
+                      );
+                    } else if (status === 'ahead') {
+                      delayText = (
+                        <Text style={{ color: 'green' }}>
+                          {' '}(+{time})
+                        </Text>
+                      );
+                    } else if (status === 'behind') {
+                      delayText = (
+                        <Text style={{ color: 'red' }}>
+                          {' '}(-{time})
+                        </Text>
+                      );
+                    }
+                  } else {
+                    // fallback if format is unexpected
+                    delayText = (
+                      <Text>
+                        {' '}({vehicle.delay_text})
+                      </Text>
+                    );
+                  }
+                }
+
                 return (
                   <View key={index} style={styles.vehicleInfoRow}>
                     <View style={{flex: 1}}>
                       <Text style={styles.vehicleTimeText}>
-                        {minutesDisplay} at {arrival}
+                        {minutesDisplay}
+                        {"\n"}
+                        at {arrival} {delayText}
                       </Text>
                       <Text style={styles.vehicleRouteText}>
                         {routeNumber} {routeName}
