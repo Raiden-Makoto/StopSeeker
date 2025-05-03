@@ -99,7 +99,7 @@ export default function RouteDetailScreen({ route }) {
 
   useEffect(() => {
     // Set up the refresh interval
-    const intervalId = setInterval(fetchUpdatedVehicles, 45000); // 45 seconds
+    const intervalId = setInterval(fetchUpdatedVehicles, 30000); // 45 seconds
 
     // Clean up the interval when component unmounts
     return () => clearInterval(intervalId);
@@ -235,46 +235,56 @@ export default function RouteDetailScreen({ route }) {
         }
       >
         {vehicles && vehicles.length > 0 ? (
-          vehicles
-            .filter(vehicle => {
-              const minutes = vehicle.minutes ? parseInt(vehicle.minutes) : null;
-              // Only show if either:
-              // 1. Minutes is less than or equal to 40, or
-              // 2. Vehicle has a vehicle number
-              return !minutes || minutes <= 40 || vehicle.vehicle_number;
-            })
-            .map((vehicle, index) => {
-              const min = vehicle.minutes ? parseInt(vehicle.minutes) : null;
-              const minutesDisplay =
-                min === 0 ? 'Now'
-                : (min !== null && !isNaN(min) ? `in ${min} minutes` : 'Time unknown');
-              const arrival = getArrivalTime(min);
-              const modelInfo = getVehicleModel(vehicle.vehicle_number);
-              return (
-                <View key={index} style={styles.vehicleInfoRow}>
-                  <View style={{flex: 1}}>
-                    <Text style={styles.vehicleTimeText}>
-                      {minutesDisplay} at {arrival}
-                    </Text>
-                    <Text style={styles.vehicleRouteText}>
-                      {routeNumber} {routeName}
-                    </Text>
-                  </View>
-                  {vehicle.vehicle_number && (
-                    <View style={styles.vehicleNumberBlock}>
-                      <Text style={styles.vehicleNumberText}>
-                        {vehicle.vehicle_number}
-                        {modelInfo?.charging && <FontAwesome name="usb" size={14} color="#fff" style={{marginLeft: 4}} />}
-                        {modelInfo?.streetcar && <FontAwesome name="train" size={14} color="#fff" style={{marginLeft: 4}} />}
+          // Prevent duplicate vehicle entries by filtering unique vehicle_number
+          (() => {
+            const seen = new Set();
+            const uniqueVehicles = vehicles.filter(vehicle => {
+              if (!vehicle.vehicle_number) return true; // keep if no vehicle_number
+              if (seen.has(vehicle.vehicle_number)) return false;
+              seen.add(vehicle.vehicle_number);
+              return true;
+            });
+            return uniqueVehicles
+              .filter(vehicle => {
+                const minutes = vehicle.minutes ? parseInt(vehicle.minutes) : null;
+                // Only show if either:
+                // 1. Minutes is less than or equal to 40, or
+                // 2. Vehicle has a vehicle number
+                return !minutes || minutes <= 40 || vehicle.vehicle_number;
+              })
+              .map((vehicle, index) => {
+                const min = vehicle.minutes ? parseInt(vehicle.minutes) : null;
+                const minutesDisplay =
+                  min === 0 ? 'Now'
+                  : (min !== null && !isNaN(min) ? `in ${min} minutes` : 'Time unknown');
+                const arrival = getArrivalTime(min);
+                const modelInfo = getVehicleModel(vehicle.vehicle_number);
+                return (
+                  <View key={index} style={styles.vehicleInfoRow}>
+                    <View style={{flex: 1}}>
+                      <Text style={styles.vehicleTimeText}>
+                        {minutesDisplay} at {arrival}
                       </Text>
-                      {modelInfo && (
-                        <Text style={styles.vehicleModelBlock}>{modelInfo.model}</Text>
-                      )}
+                      <Text style={styles.vehicleRouteText}>
+                        {routeNumber} {routeName}
+                      </Text>
                     </View>
-                  )}
-                </View>
-              );
-            })
+                    {vehicle.vehicle_number && (
+                      <View style={styles.vehicleNumberBlock}>
+                        <Text style={styles.vehicleNumberText}>
+                          {vehicle.vehicle_number}
+                          {modelInfo?.charging && <FontAwesome name="usb" size={14} color="#fff" style={{marginLeft: 4}} />}
+                          {modelInfo?.streetcar && <FontAwesome name="train" size={14} color="#fff" style={{marginLeft: 4}} />}
+                        </Text>
+                        {modelInfo && (
+                          <Text style={styles.vehicleModelBlock}>{modelInfo.model}</Text>
+                        )}
+                      </View>
+                    )}
+                  </View>
+                );
+              });
+          })()
         ) : (
           <Text style={styles.noServiceText}>No service at this time</Text>
         )}
