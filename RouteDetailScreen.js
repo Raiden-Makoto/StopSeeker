@@ -20,6 +20,7 @@ export default function RouteDetailScreen({ route, navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [vehicleLocations, setVehicleLocations] = useState({});
+  const [destinations, setDestinations] = useState({});
 
   const fetchUpdatedVehicles = async () => {
     setIsLoading(true);
@@ -97,6 +98,39 @@ export default function RouteDetailScreen({ route, navigation }) {
     }
   };
 
+  const fetchDestinations = async (vehicleNumbers) => {
+    try {
+      const response = await fetch('https://42Cummer-StopSeeker.hf.space/destinations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ vehicle_numbers: vehicleNumbers })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error(`Server returned ${response.status}: ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('Received destinations data:', data);
+
+      // Transform the destinations data into an object
+      const destinationsMap = {};
+      data.vehicles.forEach(item => {
+        const vehicleNumber = Object.keys(item)[0]; // Get the vehicle number
+        destinationsMap[vehicleNumber] = item[vehicleNumber]; // Map it to its destination
+      });
+
+      setDestinations(destinationsMap); // Set the transformed destinations
+    } catch (error) {
+      console.error('Error fetching destinations:', error);
+    }
+  };
+
   useEffect(() => {
     // Set up the refresh interval
     const intervalId = setInterval(fetchUpdatedVehicles, 30000); // 45 seconds
@@ -109,6 +143,7 @@ export default function RouteDetailScreen({ route, navigation }) {
     if (vehicles && vehicles.length > 0) {
       const numbers = vehicles.map(v => String(v.vehicle_number));
       fetchVehicleLocations(numbers);
+      fetchDestinations(numbers);
     }
   }, [vehicles]);
 
@@ -264,12 +299,15 @@ export default function RouteDetailScreen({ route, navigation }) {
                 if (min === 0) {
                   minutesDisplay = 'Now';
                 } else if (min !== null && !isNaN(min)) {
-                  minutesDisplay = `In ${min} minutes`;
+                  minutesDisplay = `${min} min`;
                 } else {
                   minutesDisplay = 'Time unknown';
                 }
                 const arrival = getArrivalTime(min);
                 const modelInfo = getVehicleModel(vehicle.vehicle_number);
+
+                // Get the destination for the vehicle
+                const destination = destinations[vehicle.vehicle_number] || '';
 
                 // Delay text with +/- and color
                 let delayText = null;
@@ -304,12 +342,21 @@ export default function RouteDetailScreen({ route, navigation }) {
                   <View key={index} style={styles.vehicleInfoRow}>
                     <View style={{flex: 1}}>
                       <Text style={styles.vehicleTimeText}>
-                        {minutesDisplay}
-                        {"\n"}
-                        at {arrival} {delayText}
+                        {minutesDisplay} @ {arrival} {delayText}
                       </Text>
                       <Text style={styles.vehicleRouteText}>
-                        {(vehicle.route_info ? vehicle.route_info.trim() : `${routeNumber} ${routeName}`)}
+                        {(() => {
+                          // Check if the destination contains "to"
+                          const toIndex = destination.indexOf("to");
+                          if (toIndex !== -1) {
+                            // Extract the letter before "to" if it exists
+                            const letter = destination[toIndex - 2] || ''; // Get the letter before "to"
+                            const formattedDestination = destination.substring(toIndex); // Get the part from "to" onwards
+                            return `${routeNumber}${letter} ${routeName}\n${formattedDestination}`; // Format as "167A {routeName} to Steeles"
+                          } else {
+                            return `${routeNumber} ${routeName}\n${destination}`; // Default format
+                          }
+                        })()}
                       </Text>
                     </View>
                     {vehicle.vehicle_number && (
@@ -418,3 +465,4 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
 }); 
+
