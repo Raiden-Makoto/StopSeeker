@@ -118,14 +118,13 @@ export default function RouteDetailScreen({ route, navigation }) {
       const data = await response.json();
       console.log('Received destinations data:', data);
 
-      // Transform the destinations data into an object
-      const destinationsMap = {};
-      data.vehicles.forEach(item => {
-        const vehicleNumber = Object.keys(item)[0]; // Get the vehicle number
-        destinationsMap[vehicleNumber] = item[vehicleNumber]; // Map it to its destination
-      });
-
-      setDestinations(destinationsMap); // Set the transformed destinations
+      // Check if data.vehicles is an object
+      if (data.vehicles && typeof data.vehicles === 'object') {
+        setDestinations(data.vehicles); // Set the destinations directly from the object
+      } else {
+        console.error('Expected data.vehicles to be an object, but got:', data.vehicles);
+        setDestinations({}); // Reset destinations if the structure is not as expected
+      }
     } catch (error) {
       console.error('Error fetching destinations:', error);
     }
