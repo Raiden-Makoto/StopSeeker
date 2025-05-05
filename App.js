@@ -220,7 +220,7 @@ function CameraScreen({ navigation }) {
         stopId: manualStopId,
         routes: data.routes,
         vehicles: data.vehicles || [],
-        stopCall: data.stopCall
+        stopcall: data.stopcall
       });
     } catch (error) {
       console.error('Error fetching stop information:', error);

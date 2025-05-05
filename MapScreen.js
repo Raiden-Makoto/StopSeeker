@@ -5,7 +5,7 @@ import { styles } from './styles';
 import stopsData from './stops.json';
 
 export default function MapScreen({ route, navigation }) {
-  const { stopId, routes, vehicles, stopCall } = route.params;
+  const { stopId, routes, vehicles, stopcall } = route.params;
   const [stopInfo, setStopInfo] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -64,7 +64,7 @@ export default function MapScreen({ route, navigation }) {
         longitude: stopInfo.longitude,
         stop: stopId
       },
-      stopCall
+      stopcall
     });
   };
 

@@ -15,7 +15,7 @@ const getArrivalTime = (minutes) => {
 };
 
 export default function RouteDetailScreen({ route, navigation }) {
-  const { routeNumber, routeName, stopInfo, stopCall } = route.params;
+  const { routeNumber, routeName, _, stopInfo, stopcall } = route.params;
   const [vehicles, setVehicles] = useState(route.params.vehicles);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -100,24 +100,25 @@ export default function RouteDetailScreen({ route, navigation }) {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify({ 'route': routeNumber, 'stopCall' : stopCall })
+        body: JSON.stringify({ 'route': routeNumber, 'stopCall': stopcall })
       });
 
       if (!response.ok) {
-        // Handle server response error
         throw new Error(`Server returned ${response.status}`);
       }
 
       const data = await response.json();
-
-      if (data.vehicles && typeof data.vehicles === 'object') {
-        setDestinations(data.vehicles);
+      
+      // Normalize destinations
+      if (data.destination) {
+        // Directly set the destination as an object
+        setDestinations(data.destination); // Assuming data.destination is the correct structure
       } else {
-        // Handle expected data.vehicles not being an object case
-        setDestinations({});
+        setDestinations({}); // Handle case where destination is not present
       }
+      console.log('Received destinations:', data.destination);
     } catch (error) {
-      // Handle error fetching destinations
+      console.error('Error fetching destinations:', error);
     }
   };
 
@@ -297,7 +298,23 @@ export default function RouteDetailScreen({ route, navigation }) {
                 const modelInfo = getVehicleModel(vehicle.vehicle_number);
 
                 // Get the destination for the vehicle
-                const destination = destinations[vehicle.vehicle_number] || '';
+                let destination = "Loading..."; // Default value
+
+                if (typeof destinations === 'string') {
+                  console.log("single string")
+                  destination = destinations;
+                  console.log(destination)
+                } else {
+                  // Loop through the destinations dictionary to find the correct destination
+                  console.log("dictionary")
+                  for (const [key, value] of Object.entries(destinations)) {
+                    if (key === vehicle.vehicle_number) {
+                      // If the key matches the vehicle number, use the corresponding destination
+                      destination = value.destination; // Assuming value is an object with a 'destination' property
+                      break; // Exit the loop once the correct destination is found
+                    }
+                  }
+                }
 
                 // Delay text with +/- and color
                 let delayText = null;
@@ -325,7 +342,6 @@ export default function RouteDetailScreen({ route, navigation }) {
                       );
                     }
                   }
-                  // else: do not display anything (delayText remains null)
                 }
 
                 return (
@@ -336,15 +352,12 @@ export default function RouteDetailScreen({ route, navigation }) {
                       </Text>
                       <Text style={styles.vehicleRouteText}>
                         {(() => {
-                          // Check if the destination contains "to"
-                          const toIndex = destination.indexOf("to");
-                          if (toIndex !== -1) {
-                            // Extract the letter before "to" if it exists
-                            const letter = destination[toIndex - 2] || ''; // Get the letter before "to"
-                            const formattedDestination = destination.substring(toIndex); // Get the part from "to" onwards
-                            return `${routeNumber}${letter} ${routeName}\n${formattedDestination}`; // Format as "167A {routeName} to Steeles"
+                          const branch = destination[1] === " " ? destination[0] : '';
+                          if (branch) {
+                            const formattedDestination = destination.substring(2); // Get the part from "to" onwards
+                            return `${routeNumber}${branch} ${routeName}\n${formattedDestination}`; // Format as "167A {routeName} to Steeles"
                           } else {
-                            return `${routeNumber} ${routeName}\n${destination}`; // Default format
+                            return `${routeNumber} ${routeName}\n${destination}`; // Return destination as is if no branch
                           }
                         })()}
                       </Text>
