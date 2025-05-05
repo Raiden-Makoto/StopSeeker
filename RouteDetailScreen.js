@@ -36,12 +36,10 @@ export default function RouteDetailScreen({ route, navigation }) {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
         throw new Error(`Server returned ${response.status}: ${errorText}`);
       }
 
       const data = await response.json();
-      console.log('Received data:', data);  // Debug log
       if (data.vehicles && Array.isArray(data.vehicles)) {
         // Filter vehicles for current route on the client side
         const routeVehicles = data.vehicles
@@ -51,13 +49,12 @@ export default function RouteDetailScreen({ route, navigation }) {
             minutes: v.minutes,
             vehicle_number: v.vehicle_number // Use the direct vehicle_number field
           }));
-        console.log('Filtered vehicles:', routeVehicles);  // Debug log
         setVehicles(routeVehicles);
       } else {
-        console.log('No vehicles data in response or invalid format:', data);  // Debug log
+        // Handle no vehicles data case
       }
     } catch (error) {
-      console.error('Error fetching updates:', error);
+      // Handle error fetching updates
     } finally {
       setIsLoading(false);
     }
@@ -74,9 +71,7 @@ export default function RouteDetailScreen({ route, navigation }) {
         body: JSON.stringify({ vehicle_numbers: vehicleNumbers })
       });
       const data = await response.json();
-      console.log('Raw vehicle locations response:', data);
 
-      // Now data.vehicles is the array you want
       const locations = {};
       if (Array.isArray(data.vehicles)) {
         data.vehicles.forEach(v => {
@@ -89,12 +84,11 @@ export default function RouteDetailScreen({ route, navigation }) {
           }
         });
       } else {
-        console.error('vehicles property missing or not an array:', data);
+        // Handle vehicles property missing or not an array case
       }
       setVehicleLocations(locations);
-      console.log('Vehicle locations:', locations);
     } catch (error) {
-      console.error('Error fetching vehicle locations:', error);
+      // Handle error fetching vehicle locations
     }
   };
 
@@ -110,23 +104,20 @@ export default function RouteDetailScreen({ route, navigation }) {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error(`Server returned ${response.status}: ${errorText}`);
+        // Handle server response error
+        throw new Error(`Server returned ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('Received destinations data:', data);
 
-      // Check if data.vehicles is an object
       if (data.vehicles && typeof data.vehicles === 'object') {
-        setDestinations(data.vehicles); // Set the destinations directly from the object
+        setDestinations(data.vehicles);
       } else {
-        console.error('Expected data.vehicles to be an object, but got:', data.vehicles);
-        setDestinations({}); // Reset destinations if the structure is not as expected
+        // Handle expected data.vehicles not being an object case
+        setDestinations({});
       }
     } catch (error) {
-      console.error('Error fetching destinations:', error);
+      // Handle error fetching destinations
     }
   };
 
