@@ -219,7 +219,8 @@ function CameraScreen({ navigation }) {
       navigation.navigate('Map', {
         stopId: manualStopId,
         routes: data.routes,
-        vehicles: data.vehicles || []
+        vehicles: data.vehicles || [],
+        stopCall: data.stopCall
       });
     } catch (error) {
       console.error('Error fetching stop information:', error);
