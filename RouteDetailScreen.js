@@ -100,7 +100,7 @@ export default function RouteDetailScreen({ route, navigation }) {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify({ 'stopCall' : stopCall })
+        body: JSON.stringify({ 'route': routeNumber, 'stopCall' : stopCall })
       });
 
       if (!response.ok) {
