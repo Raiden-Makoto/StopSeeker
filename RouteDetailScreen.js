@@ -15,7 +15,7 @@ const getArrivalTime = (minutes) => {
 };
 
 export default function RouteDetailScreen({ route, navigation }) {
-  const { routeNumber, routeName, stopInfo } = route.params;
+  const { routeNumber, routeName, stopInfo, stopCall } = route.params;
   const [vehicles, setVehicles] = useState(route.params.vehicles);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -100,7 +100,7 @@ export default function RouteDetailScreen({ route, navigation }) {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify({ vehicle_numbers: vehicleNumbers })
+        body: JSON.stringify({ 'stopCall' : stopCall })
       });
 
       if (!response.ok) {
