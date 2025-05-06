@@ -367,7 +367,6 @@ export default function RouteDetailScreen({ route, navigation }) {
                       navigation.navigate('VehicleDetail', {
                         vehicleNumber: vehicle.vehicle_number, // Pass the vehicle number as a parameter
                         modelInfo: modelInfo,
-                        stopInfo: stopInfo,
                         location: vehicleLocations[vehicle.vehicle_number],
                         destination: destination,
                         delayText: vehicle.delay_text
@@ -478,9 +477,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'right',
-  },
-  routeButton: {
-    // Add appropriate styles for the route button
   },
 }); 
 
