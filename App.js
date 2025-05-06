@@ -7,7 +7,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import MapScreen from './MapScreen';
 import RouteDetailScreen from './RouteDetailScreen';
-
+import VehicleDetailScreen from './VehicleDetailScreen';
 const Stack = createNativeStackNavigator();
 
 function CameraScreen({ navigation }) {
@@ -351,7 +351,9 @@ export default function App() {
         <Stack.Screen 
           name="Map" 
           component={MapScreen}
-          options={{ title: 'Stop Information' }}
+          options={{ title: 'Stop Information', headerStyle: {
+              backgroundColor: '#ffffff',
+            },}}
         />
         <Stack.Screen 
           name="RouteDetail" 
@@ -359,9 +361,15 @@ export default function App() {
           options={({ route }) => ({ 
             title: `${route.params.routeNumber} ${route.params.routeName}`,
             headerStyle: {
-              backgroundColor: '#000000',
+              backgroundColor: '#ffffff',
             },
-            headerTintColor: '#ffffff',
+          })}
+        />
+        <Stack.Screen
+          name="VehicleDetail"
+          component={VehicleDetailScreen}
+          options={({ route }) => ({
+            title: `Vehicle Info for Bus ${route.params.vehicleNumber}`,
           })}
         />
       </Stack.Navigator>

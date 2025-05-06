@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { FontAwesome } from '@expo/vector-icons';
 import models from './models.json';
@@ -346,34 +346,46 @@ export default function RouteDetailScreen({ route, navigation }) {
 
                 return (
                   <View key={index} style={styles.vehicleInfoRow}>
-                    <View style={{flex: 1}}>
+                    <View style={{ flex: 1 }}>
                       <Text style={styles.vehicleTimeText}>
                         {minutesDisplay} @ {arrival} {delayText}
                       </Text>
-                      <Text style={styles.vehicleRouteText}>
-                        {(() => {
-                          const branch = destination[1] === " " ? destination[0] : '';
-                          if (branch) {
-                            const formattedDestination = destination.substring(2); // Get the part from "to" onwards
-                            return `${routeNumber}${branch} ${routeName}\n${formattedDestination}`; // Format as "167A {routeName} to Steeles"
-                          } else {
-                            return `${routeNumber} ${routeName}\n${destination}`; // Return destination as is if no branch
-                          }
-                        })()}
-                      </Text>
+                        <Text style={styles.vehicleRouteText}>
+                          {(() => {
+                            const branch = destination[1] === " " ? destination[0] : '';
+                            if (branch) {
+                              const formattedDestination = destination.substring(2); // Get the part from "to" onwards
+                              return `${routeNumber}${branch} ${routeName}\n${formattedDestination}`; // Format as "167A {routeName} to Steeles"
+                            } else {
+                              return `${routeNumber} ${routeName}\n${destination}`; // Return destination as is if no branch
+                            }
+                          })()}
+                        </Text>
                     </View>
+                    <TouchableOpacity onPress={() => {
+                      // Navigate to the new screen for the vehicle
+                      navigation.navigate('VehicleDetail', {
+                        vehicleNumber: vehicle.vehicle_number, // Pass the vehicle number as a parameter
+                        modelInfo: modelInfo,
+                        stopInfo: stopInfo,
+                        location: vehicleLocations[vehicle.vehicle_number],
+                        destination: destination,
+                        delayText: vehicle.delay_text
+                      });
+                    }}>
                     {vehicle.vehicle_number && (
                       <View style={styles.vehicleNumberBlock}>
                         <Text style={styles.vehicleNumberText}>
                           {vehicle.vehicle_number}
-                          {modelInfo?.charging && <FontAwesome name="usb" size={14} color="#fff" style={{marginLeft: 4}} />}
-                          {modelInfo?.streetcar && <FontAwesome name="train" size={14} color="#fff" style={{marginLeft: 4}} />}
+                          {modelInfo?.charging && <FontAwesome name="usb" size={14} color="#fff" style={{ marginLeft: 4 }} />}
+                          {modelInfo?.streetcar && <FontAwesome name="train" size={14} color="#fff" style={{ marginLeft: 4 }} />}
                         </Text>
                         {modelInfo && (
                           <Text style={styles.vehicleModelBlock}>{modelInfo.model}</Text>
                         )}
                       </View>
                     )}
+                    </TouchableOpacity>
                   </View>
                 );
               });
@@ -466,6 +478,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'right',
+  },
+  routeButton: {
+    // Add appropriate styles for the route button
   },
 }); 
 
