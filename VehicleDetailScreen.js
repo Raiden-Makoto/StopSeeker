@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, RefreshControl } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { FontAwesome } from '@expo/vector-icons';
 
 export default function VehicleDetail({ route, navigation }) {
   const { vehicleNumber, modelInfo, location, routeNumber, routeName, destination, delayText } = route.params; // Get the vehicle number from params
-  const htmlContent = `
+  const [htmlContent, setHtmlContent] = useState(`
     <!DOCTYPE html>
     <html>
       <head>
@@ -48,7 +48,15 @@ export default function VehicleDetail({ route, navigation }) {
         </script>
       </body>
     </html>
-  `;
+  `);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setHtmlContent(prevContent => prevContent); // Trigger a re-render
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, []);
 
   // Process delayText
   let delayDisplay = null;
