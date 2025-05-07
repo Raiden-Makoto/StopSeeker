@@ -4,7 +4,7 @@ import { WebView } from 'react-native-webview';
 import { FontAwesome } from '@expo/vector-icons';
 
 export default function VehicleDetail({ route, navigation }) {
-  const { vehicleNumber, modelInfo, location, destination, delayText } = route.params; // Get the vehicle number from params
+  const { vehicleNumber, modelInfo, location, routeNumber, routeName, destination, delayText } = route.params; // Get the vehicle number from params
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -50,15 +50,40 @@ export default function VehicleDetail({ route, navigation }) {
     </html>
   `;
 
+  // Process delayText
+  let delayDisplay = null;
+  if (delayText) {
+    const match = delayText.match(/^(\d+:\d{2})\s+(ahead|behind)$/);
+    if (match) {
+      const [, time, status] = match;
+      if (time === '0:00') {
+        delayDisplay = <Text style={{ color: 'green', fontSize: 24, fontWeight: 'bold' }}>{' '}+0</Text>;
+      } else if (status === 'ahead') {
+        delayDisplay = <Text style={{ color: 'green', fontSize: 24, fontWeight: 'bold' }}>{' '}+{time}</Text>;
+      } else if (status === 'behind') {
+        delayDisplay = <Text style={{ color: 'red', fontSize: 24, fontWeight: 'bold' }}>{' '}-{time}</Text>;
+      }
+    }
+    else{
+      delayDisplay = <Text style={{ color: 'green', fontSize: 24, fontWeight: 'bold' }}>{' '}+0</Text>;
+    }
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.vehicleNumberText}>{vehicleNumber}</Text>
         <Text style={styles.vehicleModelBlock}>
           {modelInfo.model}
-          {modelInfo?.charging && <FontAwesome name="usb" size={14} color="#fff" style={{ marginLeft: 4 }} />}
-          {modelInfo?.streetcar && <FontAwesome name="train" size={14} color="#fff" style={{ marginLeft: 4 }} />}
+          {modelInfo?.charging && <FontAwesome name="usb" size={17} color="#fff" style={{ marginLeft: 4 }} />}
+          {modelInfo?.streetcar && <FontAwesome name="train" size={17} color="#fff" style={{ marginLeft: 4 }} />}
         </Text>
+      </View>
+      <View style={styles.routeContainer}>
+        <Text style={styles.routeTitle}>{routeNumber} {routeName}</Text>
+        <View style={styles.delayContainer}>
+          {delayDisplay}
+        </View>
       </View>
       <View style={styles.mapContainer}>
         <WebView
@@ -68,7 +93,6 @@ export default function VehicleDetail({ route, navigation }) {
           domStorageEnabled={true}
         />
       </View>
-      {/* Add more details about the vehicle here */}
     </View>
   );
 }
@@ -85,7 +109,7 @@ const styles = StyleSheet.create({
   },
   vehicleNumberText: {
     flex: 1,
-    fontSize: 24,
+    fontSize: 29,
     fontWeight: 'bold',
     color: '#fff',
   },
@@ -93,6 +117,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'right',
     color: '#fff',
+    fontSize: 17,
   },
   map: {
     flex: 1,
@@ -103,9 +128,20 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#333',
   },
+  routeContainer: {
+    flexDirection: 'row', // Align items horizontally
+    justifyContent: 'space-between', // Space between title and delay
+    alignItems: 'center', // Center vertically
+    padding: 10,
+    backgroundColor: '#333333', // Set a darker grey background
+  },
+  delayContainer: {
+    marginLeft: 'auto', // Push delay text to the right
+  },
   routeTitle: {
-    fontSize: 24,
+    fontSize: 21,
     fontWeight: 'bold',
+    color: 'white',
   },
   content: {
     flex: 1,
@@ -127,7 +163,7 @@ const styles = StyleSheet.create({
   },
   vehicleRouteText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 24,
     marginTop: 2,
   },
   vehicleNumberBlock: {

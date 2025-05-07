@@ -116,7 +116,7 @@ export default function RouteDetailScreen({ route, navigation }) {
       } else {
         setDestinations({}); // Handle case where destination is not present
       }
-      console.log('Received destinations:', data.destination);
+      //console.log('Received destinations:', data.destination);
     } catch (error) {
       console.error('Error fetching destinations:', error);
     }
@@ -301,12 +301,9 @@ export default function RouteDetailScreen({ route, navigation }) {
                 let destination = "Loading..."; // Default value
 
                 if (typeof destinations === 'string') {
-                  console.log("single string")
                   destination = destinations;
-                  console.log(destination)
                 } else {
                   // Loop through the destinations dictionary to find the correct destination
-                  console.log("dictionary")
                   for (const [key, value] of Object.entries(destinations)) {
                     if (key === vehicle.vehicle_number) {
                       // If the key matches the vehicle number, use the corresponding destination
@@ -368,6 +365,8 @@ export default function RouteDetailScreen({ route, navigation }) {
                         vehicleNumber: vehicle.vehicle_number, // Pass the vehicle number as a parameter
                         modelInfo: modelInfo,
                         location: vehicleLocations[vehicle.vehicle_number],
+                        routeNumber: routeNumber,
+                        routeName: routeName,
                         destination: destination,
                         delayText: vehicle.delay_text
                       });
