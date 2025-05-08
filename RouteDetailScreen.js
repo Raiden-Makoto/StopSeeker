@@ -25,7 +25,7 @@ export default function RouteDetailScreen({ route, navigation }) {
   const fetchUpdatedVehicles = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('https://42Cummer-StopSeeker.hf.space/seek', {
+      const response = await fetch(`${process.env.SEEK_URL}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -62,7 +62,7 @@ export default function RouteDetailScreen({ route, navigation }) {
 
   const fetchVehicleLocations = async (vehicleNumbers) => {
     try {
-      const response = await fetch('https://42cummer-stopseeker.hf.space/vehicles', {
+      const response = await fetch(`${process.env.VEHICLES_URL}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -94,7 +94,7 @@ export default function RouteDetailScreen({ route, navigation }) {
 
   const fetchDestinations = async (vehicleNumbers) => {
     try {
-      const response = await fetch('https://42Cummer-StopSeeker.hf.space/destinations', {
+      const response = await fetch(`${process.env.DESTINATIONS_URL}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

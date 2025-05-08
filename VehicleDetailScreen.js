@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, RefreshControl, ScrollView } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { FontAwesome } from '@expo/vector-icons';
+import 'dotenv/config';
 
 export default function VehicleDetail({ route, navigation }) {
   const { vehicleNumber, modelInfo, location, routeNumber, routeName, destination, delayText: initialDelayText } = route.params; // Get the vehicle number from params
@@ -57,7 +58,7 @@ export default function VehicleDetail({ route, navigation }) {
   const fetchVehicleInformation = async () => {
     setIsLoading(true);
     try{
-      const response = await fetch('https://42Cummer-StopSeeker.hf.space/vehicleinfo', {
+      const response = await fetch(`${process.env.DELAY_URL}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -164,7 +165,7 @@ export default function VehicleDetail({ route, navigation }) {
             } else if (location.occupancy_status === 'FEW_SEATS_AVAILABLE') {
               return 'Few Seats Available 🟡'; // Yellow circle for few seats available
             } else if (location.occupancy_status === 'FULL') {
-              return 'Sorry, Bus Full🔴'; // Red circle for full
+              return 'Sorry, Bus Full 🔴'; // Red circle for full
             } else {
               return 'Status Unknown'; // Fallback for unexpected values
             }

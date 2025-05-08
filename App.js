@@ -8,6 +8,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import MapScreen from './MapScreen';
 import RouteDetailScreen from './RouteDetailScreen';
 import VehicleDetailScreen from './VehicleDetailScreen';
+import 'dotenv/config';
 const Stack = createNativeStackNavigator();
 
 function CameraScreen({ navigation }) {
@@ -154,7 +155,7 @@ function CameraScreen({ navigation }) {
         name: 'photo.jpg',
       });
 
-      const response = await fetch('https://42Cummer-StopSeeker.hf.space/upload', {
+      const response = await fetch(`${process.env.UPLOAD_URL}`, {
         method: 'POST',
         body: formData,
         headers: {
@@ -194,7 +195,7 @@ function CameraScreen({ navigation }) {
     setIsUploading(true);
     try {
       console.log('Fetching stop information for:', manualStopId);
-      const response = await fetch('https://42Cummer-StopSeeker.hf.space/seek', {
+      const response = await fetch(`${process.env.SEEK_URL}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
