@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, RefreshControl, ScrollView } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { FontAwesome } from '@expo/vector-icons';
 
 export default function VehicleDetail({ route, navigation }) {
-  const { vehicleNumber, modelInfo, location, routeNumber, routeName, destination, delayText } = route.params; // Get the vehicle number from params
+  const { vehicleNumber, modelInfo, location, routeNumber, routeName, destination, delayText: initialDelayText } = route.params; // Get the vehicle number from params
+  const [delayText, setDelayText] = useState(initialDelayText);
+  const [isLoading, setIsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [vehicleLocations, setVehicleLocations] = useState({});
   const [htmlContent, setHtmlContent] = useState(`
     <!DOCTYPE html>
     <html>
@@ -50,12 +54,47 @@ export default function VehicleDetail({ route, navigation }) {
     </html>
   `);
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setHtmlContent(prevContent => prevContent); // Trigger a re-render
-    }, 30000); // 30 seconds
+  const fetchVehicleInformation = async () => {
+    setIsLoading(true);
+    try{
+      const response = await fetch('https://42Cummer-StopSeeker.hf.space/vehicleinfo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ vehicle_number: vehicleNumber })
+      });
 
+      if (!response.ok){
+        const errorText = await response.text();
+        throw new Error(`Server returned ${response.status}: ${errorText}`);
+      }
+
+      const data = await response.json();
+      if (data.delay){
+        setDelayText(data.delay);
+      } else {
+        setDelayText(null);
+      }
+      if (data.location){
+        setVehicleLocations(data.location);
+      }
+    } catch (error) {
+      console.error('Error fetching vehicle information:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const intervalId = setInterval(fetchVehicleInformation, 30000);
     return () => clearInterval(intervalId); // Cleanup on unmount
+  }, []);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    fetchVehicleInformation().then(() => setRefreshing(false));
   }, []);
 
   // Process delayText
@@ -70,6 +109,9 @@ export default function VehicleDetail({ route, navigation }) {
         delayDisplay = <Text style={{ color: 'green', fontSize: 24, fontWeight: 'bold' }}>{' '}+{time}</Text>;
       } else if (status === 'behind') {
         delayDisplay = <Text style={{ color: 'red', fontSize: 24, fontWeight: 'bold' }}>{' '}-{time}</Text>;
+      }
+      else{
+        delayDisplay = <Text style={{ color: 'green', fontSize: 24, fontWeight: 'bold' }}>{' '}+0</Text>;
       }
     }
     else{
@@ -93,6 +135,19 @@ export default function VehicleDetail({ route, navigation }) {
           {delayDisplay}
         </View>
       </View>
+      <View style={styles.routeContainer}>
+      <Text style={styles.vehicleRouteText}>
+      {(() => {
+        const branch = destination[1] === " " ? destination[0] : '';
+        if (branch) {
+          const formattedDestination = destination.substring(2); // Get the part from "to" onwards
+          return `${routeNumber}${branch} ${routeName} ${formattedDestination}`; // Format as "167A {routeName} to Steeles"
+        } else {
+          return `${routeNumber} ${routeName} ${destination}`; // Return destination as is if no branch
+        }
+      })()}
+      </Text>
+      </View>
       <View style={styles.mapContainer}>
         <WebView
           source={{ html: htmlContent }}
@@ -100,6 +155,21 @@ export default function VehicleDetail({ route, navigation }) {
           javaScriptEnabled={true}
           domStorageEnabled={true}
         />
+      </View>
+      <View style={styles.routeContainer}>
+        <Text style={styles.occupancyText}>
+          Occupancy: {(() => {
+            if (location.occupancy_status === 'EMPTY') {
+              return 'Many Seats Available 🟢'; // Green circle for empty
+            } else if (location.occupancy_status === 'FEW_SEATS_AVAILABLE') {
+              return 'Few Seats Available 🟡'; // Yellow circle for few seats available
+            } else if (location.occupancy_status === 'FULL') {
+              return 'Sorry, Bus Full🔴'; // Red circle for full
+            } else {
+              return 'Status Unknown'; // Fallback for unexpected values
+            }
+          })()}
+        </Text>
       </View>
     </View>
   );
@@ -129,7 +199,7 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
-    backgroundColor: '#000', // Ensure the WebView background is also black
+    backgroundColor: '#fff', // Ensure the WebView background is also black
   },
   mapContainer: {
     height: 300,
@@ -140,7 +210,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', // Align items horizontally
     justifyContent: 'space-between', // Space between title and delay
     alignItems: 'center', // Center vertically
-    padding: 10,
+    padding: 6,
     backgroundColor: '#333333', // Set a darker grey background
   },
   delayContainer: {
@@ -171,7 +241,7 @@ const styles = StyleSheet.create({
   },
   vehicleRouteText: {
     color: '#fff',
-    fontSize: 24,
+    fontSize: 14,
     marginTop: 2,
   },
   vehicleNumberBlock: {
@@ -186,6 +256,12 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   refreshingText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'right',
+  },
+  occupancyText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
